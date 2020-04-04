@@ -462,8 +462,7 @@ Resources:
                         " --region ", !Ref "AWS::Region", 
                         "\n"
                     ]]
-      IamInstanceProfile:
-        - Ref: EC2FleetInstanceProfile
+      IamInstanceProfile: !Ref EC2FleetInstanceProfile
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} EC2 Fleet 1 (AZ1)
