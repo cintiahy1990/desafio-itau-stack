@@ -36,6 +36,12 @@ Metadata:
           - EC2KeyPair
           - InstanceSize
           - PublicIP
+      -
+        Label:
+          default: "Configuracao da EC2 Fleet com CodeCommit"
+        Parameters:
+          - FleetInstanceSize
+          - InstanceCount
 
     ParameterLabels:
       EnvironmentName:
@@ -56,6 +62,10 @@ Metadata:
         default: "Selecione o tipo de instancia"
       PublicIP:
         default: "Defina o seu CIDR de Ingress para o SSH"
+      FleetInstanceSize:
+        default: "Selecione o tipo de instancia para a ec2 fleet da sua app"
+      InstanceCount:
+        default: "Defina a quantidade de instancias para a ec2 fleet da sua app"
 
 Parameters:
   EnvironmentName:
@@ -117,7 +127,28 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
-      
+
+  FleetInstanceSize:
+    Type: String
+    Description: Selecione o instance size da EC2 Fleet
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+
+  InstanceCount:
+    Description: Numero de instancias Amazon 2 EC2 (entre 1 e 2).
+    Type: Number
+    Default: 1
+    ConstraintDescription: Valor precisa estar entre 1 e 2
+    MinValue: 1
+    MaxValue: 2
+
+Conditions: 
+  Fleet1: !Equals [ !Ref InstanceCount, 1 ]
+  Fleet2: !Equals [ !Ref InstanceCount, 2 ]
 
 # aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --region <region>
 Mappings:
@@ -132,6 +163,7 @@ Mappings:
       "AMI": "ami-0ce21b51cb31a48b8"
     sa-east-1:
       "AMI": "ami-0b032e878a66c3b68"
+
 
 Resources:
   VPC:
@@ -370,6 +402,22 @@ Resources:
         - !Ref PrivateRouteTable2
       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
       VpcId: !Ref VPC
+
+  EC2FleetRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
 
 Outputs:
   VPC:
