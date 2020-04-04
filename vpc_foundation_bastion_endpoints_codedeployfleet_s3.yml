@@ -417,7 +417,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
-      RoleName: EC2CodeCommitFleetRole
+      RoleName: EC2CodeDeployFleetRole
   
   EC2FleetInstanceProfile: 
     Type: "AWS::IAM::InstanceProfile"
@@ -464,7 +464,7 @@ Resources:
       IamInstanceProfile: !Ref EC2FleetInstanceProfile
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} EC2 Fleet 1 (AZ1)
+          Value: EC2 Fleet
       NetworkInterfaces:
         - AssociatePublicIpAddress: "false"
           DeviceIndex: "0"
@@ -512,7 +512,7 @@ Resources:
       IamInstanceProfile: !Ref EC2FleetInstanceProfile
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} EC2 Fleet 2 (AZ1)
+          Value: EC2 Fleet
       NetworkInterfaces:
         - AssociatePublicIpAddress: "false"
           DeviceIndex: "0"
@@ -543,7 +543,46 @@ Resources:
       - IpProtocol: tcp
         FromPort: '80'
         ToPort: '80'
-        CidrIp: !Ref VpcCIDR                  
+        CidrIp: !Ref VpcCIDR
+
+  CodeDeployRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      RoleName: CodeDeployRoleCustom
+
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: CodeDeployDesafioItau
+      ComputePlatform: Server
+
+  CodeDeployDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+        ApplicationName: 
+          Ref: "CodeDeployApplication"
+        DeploymentConfigName: CodeDeployDefault.OneAtATime
+        DeploymentStyle:
+          DeploymentType: IN_PLACE
+          DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        ServiceRoleArn: 
+          Fn::GetAtt: [ "CodeDeployRole", Arn ]
+        Ec2TagFilters:
+          - Key: "Name"
+            Value: "EC2 Fleet"
+            Type: "KEY_AND_VALUE"
 
 Outputs:
   VPC:
