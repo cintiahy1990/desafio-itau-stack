@@ -437,14 +437,14 @@ Resources:
               ruby: []
         files:
           /home/ec2-user/install:
-            source: !Join [ "", ["https://aws-codedeploy-", !Ref AWS::Region, ".s3.amazonaws.com/latest/install" ]]
+            source: !Join [ "", ["https://aws-codedeploy-", !Ref "AWS::Region", ".s3.amazonaws.com/latest/install" ]]
             mode: 000755
         commands:
           00-install-agent:
             command: ./install auto
             cwd: /home/ec2-user/
           01-cfn-signal:
-            command: !Join [ "", ["/opt/aws/bin/cfn-signal -e 0 --stack ", !Ref AWS::StackName, " --resource SampleLinuxInstance --region ", !Ref AWS::Region ]]
+            command: !Join [ "", ["/opt/aws/bin/cfn-signal -e 0 --stack ", !Ref "AWS::StackName", " --resource SampleLinuxInstance --region ", !Ref "AWS::Region" ]]
     DependsOn:
       - LinuxSSHSecurityGroup
     Properties:
