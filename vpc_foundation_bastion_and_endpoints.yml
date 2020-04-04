@@ -9,7 +9,7 @@ Description:  Este template foi puramente insipirado no Well-Architected Framewo
   4-) Vamos criar uma pequena Bastion em cada subnet publica, para permitir o acesso SSH e, a partir deste,
   poder cair em alguma outra EC2 em subnets privadas. ~~IMPORTANTE~~ Aqui sera necessario um key-pair.
   5-) Criaremos um VPC Endpoint (GW) para o servico do S3, ja que nao queremos acessar os buckets pela internet.
-
+  ---- IMPORTANTE - Explicacao continua no GitHub
 
 Metadata:
 
@@ -285,7 +285,6 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
 
-
   PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -446,7 +445,7 @@ Resources:
           01-cfn-signal:
             command: !Join [ "", ["/opt/aws/bin/cfn-signal -e 0 --stack ", !Ref "AWS::StackName", " --resource SampleLinuxInstance --region ", !Ref "AWS::Region" ]]
     DependsOn:
-      - LinuxSSHSecurityGroup
+      - FleetSSHSecurityGroup
     Properties:
       ImageId: !FindInMap [Linux, !Ref "AWS::Region", AMI]
       InstanceType: !Ref FleetInstanceSize
@@ -470,19 +469,47 @@ Resources:
         - AssociatePublicIpAddress: "false"
           DeviceIndex: "0"
           GroupSet:
-            - Ref: LinuxSSHSecurityGroup
+            - Ref: FleetSSHSecurityGroup
           SubnetId:
-            Ref: PublicSubnet1
+            Ref: PrivateSubnet1
 
   LinuxEC2Fleet2:
     Type: AWS::EC2::Instance
     Condition: Fleet2
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              ruby: []
+        files:
+          /home/ec2-user/install:
+            source: !Join [ "", ["https://aws-codedeploy-", !Ref "AWS::Region", ".s3.amazonaws.com/latest/install" ]]
+            mode: 000755
+        commands:
+          00-install-agent:
+            command: ./install auto
+            cwd: /home/ec2-user/
+          01-cfn-signal:
+            command: !Join [ "", ["/opt/aws/bin/cfn-signal -e 0 --stack ", !Ref "AWS::StackName", " --resource SampleLinuxInstance --region ", !Ref "AWS::Region" ]]
     DependsOn:
-      - LinuxSSHSecurityGroup
+      - FleetSSHSecurityGroup
     Properties:
       ImageId: !FindInMap [Linux, !Ref "AWS::Region", AMI]
       InstanceType: !Ref FleetInstanceSize
       KeyName: !Ref EC2KeyPair
+      UserData:
+        Fn::Base64: !Join ["", [
+                        "#!/bin/bash\n",
+                        "yum -y update\n",
+                        "yum -y install cfn-bootstrap\n",
+                        "/opt/aws/bin/cfn-init -v",
+                        " --stack ", !Ref "AWS::StackName",
+                        " --resource SampleLinuxInstance",
+                        " --region ", !Ref "AWS::Region", 
+                        "\n"
+                    ]]
+      IamInstanceProfile: !Ref EC2FleetInstanceProfile
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} EC2 Fleet 2 (AZ1)
@@ -490,9 +517,33 @@ Resources:
         - AssociatePublicIpAddress: "false"
           DeviceIndex: "0"
           GroupSet:
-            - Ref: LinuxSSHSecurityGroup
+            - Ref: FleetSSHSecurityGroup
           SubnetId:
-            Ref: PublicSubnet1            
+            Ref: PrivateSubnet2
+
+  FleetSSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Permite o inbound de SSH para as EC2 das Fleets
+      GroupName: linux-fleet-ssh
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: !Ref VpcCIDR
+  
+  FleetHTTPSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Permite o inbound de HTTP para as EC2 das Fleets pelo ALB
+      GroupName: linux-fleet-http
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: !Ref VpcCIDR                  
 
 Outputs:
   VPC:
