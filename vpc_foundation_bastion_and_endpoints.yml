@@ -418,6 +418,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
+      RoleName: EC2CodeCommitFleetRole
 
 Outputs:
   VPC:
