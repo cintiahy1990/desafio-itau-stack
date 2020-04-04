@@ -585,3 +585,12 @@ Outputs:
   Bastion2PublicIP:
     Description: IP Publico da Bastion 2
     Value: !GetAtt LinuxBastionHost2.PublicIp
+
+  Fleet1PrivateIP:
+    Description: IP Privado da EC2 1 da Fleet
+    Value: !GetAtt LinuxBastionHost1.PrivateIp
+
+  Fleet2PrivateIP:
+    Description: IP Privado da EC2 2 da Fleet
+    Value: !GetAtt LinuxBastionHost2.PrivateIp
+
