@@ -419,6 +419,81 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy
       RoleName: EC2CodeCommitFleetRole
+  
+  EC2FleetInstanceProfile: 
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/"
+      Roles: 
+        - Ref: EC2FleetRole
+
+  LinuxEC2Fleet1:
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              ruby: []
+        files:
+          /home/ec2-user/install:
+            source: !Join [ "", ["https://aws-codedeploy-", !Ref AWS::Region, ".s3.amazonaws.com/latest/install" ]]
+            mode: 000755
+        commands:
+          00-install-agent:
+            command: ./install auto
+            cwd: /home/ec2-user/
+          01-cfn-signal:
+            command: !Join [ "", ["/opt/aws/bin/cfn-signal -e 0 --stack ", !Ref AWS::StackName, " --resource SampleLinuxInstance --region ", !Ref AWS::Region ]]
+    DependsOn:
+      - LinuxSSHSecurityGroup
+    Properties:
+      ImageId: !FindInMap [Linux, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref FleetInstanceSize
+      KeyName: !Ref EC2KeyPair
+      UserData:
+        Fn::Base64: !Join ["", [
+                        "#!/bin/bash\n",
+                        "yum -y update\n",
+                        "yum -y install cfn-bootstrap\n",
+                        "/opt/aws/bin/cfn-init -v",
+                        " --stack ", !Ref AWS::StackName",
+                        " --resource SampleLinuxInstance",
+                        " --region ", !Ref "AWS::Region", 
+                        "\n"
+                    ]]
+      IamInstanceProfile:
+        - Ref: EC2FleetInstanceProfile
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} EC2 Fleet 1 (AZ1)
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: LinuxSSHSecurityGroup
+          SubnetId:
+            Ref: PublicSubnet1
+
+  LinuxEC2Fleet2:
+    Type: AWS::EC2::Instance
+    Condition: Fleet2
+    DependsOn:
+      - LinuxSSHSecurityGroup
+    Properties:
+      ImageId: !FindInMap [Linux, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref FleetInstanceSize
+      KeyName: !Ref EC2KeyPair
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} EC2 Fleet 2 (AZ1)
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: LinuxSSHSecurityGroup
+          SubnetId:
+            Ref: PublicSubnet1            
 
 Outputs:
   VPC:
