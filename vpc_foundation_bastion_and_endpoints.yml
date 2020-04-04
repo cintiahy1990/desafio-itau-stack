@@ -457,7 +457,7 @@ Resources:
                         "yum -y update\n",
                         "yum -y install cfn-bootstrap\n",
                         "/opt/aws/bin/cfn-init -v",
-                        " --stack ", !Ref AWS::StackName",
+                        " --stack ", !Ref "AWS::StackName",
                         " --resource SampleLinuxInstance",
                         " --region ", !Ref "AWS::Region", 
                         "\n"
