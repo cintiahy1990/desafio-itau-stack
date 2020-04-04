@@ -66,26 +66,36 @@ Parameters:
     Description: CIDR da sua VPC (pode aceitar o Default)
     Type: String
     Default: 172.16.0.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
 
   PublicSubnet1CIDR:
     Description: CIDR da sua Subnet Publica da AZ1 (pode aceitar o Default)
     Type: String
     Default: 172.16.0.0/26
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
 
   PublicSubnet2CIDR:
     Description: CIDR da sua Subnet Publica da AZ2 (pode aceitar o Default)
     Type: String
     Default: 172.16.0.64/26
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
 
   PrivateSubnet1CIDR:
     Description: CIDR da sua Subnet Privada da AZ1 (pode aceitar o Default)
     Type: String
     Default: 172.16.0.128/26
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
 
   PrivateSubnet2CIDR:
     Description: CIDR da sua Subnet Privada da AZ2 (pode aceitar o Default)
     Type: String
     Default: 172.16.0.192/26
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Valor precisa estar nesse formato <ip address>/<cidr>
 
   EC2KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
