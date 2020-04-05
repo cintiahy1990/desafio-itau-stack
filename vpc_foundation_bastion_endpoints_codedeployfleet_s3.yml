@@ -49,6 +49,7 @@ Metadata:
           - BranchName
           - RepositoryName
           - GitHubOwner
+          - Token
 
     ParameterLabels:
       EnvironmentName:
@@ -79,6 +80,8 @@ Metadata:
         default: "Qual o nome do repo?"
       GitHubOwner:
         default: "Qual o owner do repo?"
+      Token:
+        default: "Qual o token de teste do repo? Nao vamos gastar com Secrets Manager agora"
 
 Parameters:
   EnvironmentName:
@@ -170,6 +173,8 @@ Parameters:
   GitHubOwner:
     Type: String
     Default: cintiahy1990
+  Token:
+    Type: String
 
 Conditions: 
   Fleet1: !Equals [ !Ref InstanceCount, 1 ]
@@ -651,7 +656,7 @@ Resources:
     Properties:
       Authentication: GITHUB_HMAC
       AuthenticationConfiguration:
-        SecretToken: {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+        SecretToken: !Ref Token
       Filters:
         - JsonPath: $.ref
           MatchEquals: 'refs/heads/{Branch}'
@@ -687,7 +692,7 @@ Resources:
                 Owner: !Ref GitHubOwner
                 Repo: !Ref RepositoryName
                 Branch: !Ref BranchName
-                OAuthToken: {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+                OAuthToken: !Ref Token
                 PollForSourceChanges: false
               RunOrder: 1
         - Name: Beta
