@@ -651,7 +651,7 @@ Resources:
     Properties:
       Authentication: GITHUB_HMAC
       AuthenticationConfiguration:
-        SecretToken: e5bec94b34422bc09e86c75c61e3af300bf9ef5b
+        SecretToken: {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
       Filters:
         - JsonPath: $.ref
           MatchEquals: 'refs/heads/{Branch}'
@@ -687,7 +687,7 @@ Resources:
                 Owner: !Ref GitHubOwner
                 Repo: !Ref RepositoryName
                 Branch: !Ref BranchName
-                OAuthToken: e5bec94b34422bc09e86c75c61e3af300bf9ef5b
+                OAuthToken: {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
                 PollForSourceChanges: false
               RunOrder: 1
         - Name: Beta
