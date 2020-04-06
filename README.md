@@ -16,6 +16,22 @@ Você precisa de apenas duas coisas para rodar a stack:
 
 2. OAuth Token do GitHub. Para o teste iremos utilizar um Token simples de leitura.
 
+### IaC - CloudFormation Description
+
+Este template foi puramente insipirado no Well-Architected Framework da AWS, visando suprir as necessidades do projeto-desafio para o Itau Unibanco.
+
+  1-) A stack vai criar uma VPC, com duas subnets publicas e duas subnets privadas, distribuidas
+  em duas AZ's.
+  2-) Pra tornar as duas primeiras subnets publicas, a stack vai entregar um IGW. Este, apenas
+  atrelado na Routing Table Publica.
+  3-) Para o egress, vamos utilizar um NAT GW em cada subnet publica. Assim nao temos um unico ponto de falha.
+  3.1-) Cada Routing Table das subnets privadas vai ter o destination 0.0.0.0/0 pro seu respectivo nat-gw (tem dois)
+  4-) Vamos criar uma pequena Bastion em cada subnet publica, para permitir o acesso SSH e, a partir deste,
+  poder cair em alguma outra EC2 em subnets privadas. ~~IMPORTANTE~~ Aqui sera necessario um key-pair.
+  5-) Criaremos um VPC Endpoint (GW) para o servico do S3, ja que nao queremos acessar os buckets pela internet.
+  ---- IMPORTANTE - Explicacao continua no GitHub
+
+
 ## Built With
 
 * [CloudFormation](https://aws.amazon.com/cloudformation/) - The IaC Engine
